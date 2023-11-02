@@ -50,14 +50,15 @@ class Color extends Controller
                 "value" => $this->toHex(),
                 "clean" => Str::remove('#', $this->toHex())
             ],
-            "hsl" => [
-                "value" => $this->toHSL(),
-            ],
             "rgb" => [
                 "value" => $this->toRGB(),
                 "r" => $this->red,
                 "g" => $this->green,
                 "b" => $this->blue,
+            ],
+            "cmyk" => $this->toCmyk(),
+            "hsl" => [
+                "value" => $this->toHSL(),
             ],
             "websafe" => [
                 "value" => $this->toWebSafe(),
@@ -173,11 +174,50 @@ class Color extends Controller
         $closest = 0;
         $closestValue = "00";
         foreach ($arr as $key => $value) {
-            if (abs( (int) $search - (int) $closest) > abs((int) $key - (int) $search)) {
+            if (abs((int) $search - (int) $closest) > abs((int) $key - (int) $search)) {
                 $closest = $key;
                 $closestValue = $value;
             }
         }
         return $closestValue;
+    }
+
+    /**
+     * Returns the CMYK (Cyan, Magenta, Yellow, Key [Black]) code of the color currently in the instance, used for print.
+     * @return array
+     * @author Francisco Mota <franciscolmota@outlook.com>
+     */
+    public function toCmyk()
+    {
+        // Converts into the % of color
+        $r = $this->red / 255;
+        $g = $this->green / 255;
+        $b = $this->blue / 255;
+
+        $k = 1 - max($r, $g, $b);
+
+        if ($k == 1) {
+            $c = 0;
+            $m = 0;
+            $y = 0;
+        } else {
+            $c = (1 - $r - $k) / (1 - $k);
+            $m = (1 - $g - $k) / (1 - $k);
+            $y = (1 - $b - $k) / (1 - $k);
+        }
+
+        $c = round($c * 100);
+        $m = round($m * 100);
+        $y = round($y * 100);
+        $k = round($k * 100);
+
+
+        return [
+            "value" => "cmyk(" . $c . ", " . $m . ", " . $y . ", " . $k . ")",
+            "c" => $c,
+            "m" => $m,
+            "y" => $y,
+            "k" => $k,
+        ];
     }
 }
